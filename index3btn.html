@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title>canvas</title>
+
+        </style>
+    </head>
+
+    <body>
+        <div style="display:fixed">
+            <div style="float:left;height: 600px;width: 600px; display:fixed">
+            <canvas id="canvas1" width="600" height="600"></canvas>
+            </div>
+            <div>
+            <button type="button" id="cut" style="font-size:33pt">裁剪</button>
+            <button type="button" id="clear"  style="font-size:33pt">重画</button>
+            <button type="button" id="upload"  style="font-size:33pt">识别</button>
+            <br>
+            <span id="res" style="font-size: 40pt">结果：</span>    
+
+            </div>
+            <div style="float:left;height: 60px;width: 60px;display:fixed;">
+                <canvas id="canvas2" width="28" height="28"></canvas>
+            </div>
+        </div>
+ 
+
+
+        <script type="text/javascript">
+            //获得画布元素
+            var canvas1 = document.getElementById("canvas1");
+            //获得画板元素
+            var ctx = canvas1.getContext("2d");
+            //ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+            ctx.fillRect(0,0,600,600);
+
+            var canvas2 = document.getElementById("canvas2");
+            //获得画板元素
+            var ctx2 = canvas2.getContext("2d");
+            //ctx.fillRect(0,0,600,600);
+
+
+
+            var isdrawing=false;
+            var firstdrawing=true;
+            var cx;
+            var cy;
+            var img;
+            var cpx=0;
+            var cpy=0;
+
+            //设置线宽
+            ctx.lineWidth = 15;
+            //设置线的颜色
+            ctx.strokeStyle = "white";
+
+            if ((!navigator.userAgent.match(/(iPhone|iPod|Android|ios|iOS|iPad|Backerry|WebOS|Symbian|Windows Phone|Phone)/i))) {
+            window.alert("是网页端")
+            canvas1.onmousedown=function(e){
+                ctx.moveTo(e.clientX, e.clientY);
+                cx=e.clientX;
+                cy=e.clientY;
+                isdrawing=true;
+            }
+            
+            canvas1.onmouseup=function(e){
+                isdrawing=false;
+                firstdrawing=false;
+                cx1=-1;
+                cy1=-1;
+            }
+
+            var cx1;
+            var cy1;
+            var cx2;
+            var cy2;
+            canvas1.onmousemove=function(e){
+                if(isdrawing){
+                    if(firstdrawing||cx1<0||cy1<0){
+                        cx1=e.clientX;
+                        cy1=e.clientY;
+                        firstdrawing=false;
+                    }
+                    else{
+                    //ctx.lineCap="round";
+                    //ctx.lineTo(e.clientX, e.clientY);
+                    //画线
+                    //ctx.moveTo(e.clientX, e.clientY);
+                    //ctx.stroke();//划线到当前的xy
+                    /*ctx.lineCap="round";
+                    ctx.quadraticCurveTo((cx+e.clientX)/2,(cy+e.clientY)/2,e.clientX, e.clientY)
+                    ctx.stroke();
+                    ctx.moveTo(e.clientX, e.clientY);
+                    cx=e.clientX;
+                    cy=e.clientY;*/
+                    //ctx.lineCap="round";
+                    cx2=e.clientX;
+                    cy2=e.clientY;
+                    ctx.moveTo((cx+cx1)/2, (cy+cy1)/2);
+
+                    ctx.quadraticCurveTo(cx1,cy1,(cx2+cx1)/2,(cy2+cy1)/2);
+                    ctx.stroke();
+                    cx=cx1;
+                    cy=cy1;
+                    cx1=cx2;
+                    cy1=cy2;
+                    }
+                }
+                canvas1.onmouseout=canvas1.onmouseup;
+            }        
+            }
+            else{
+                window.alert("是移动端")
+                
+                canvas1.ontouchstart=function(e){
+                    let pos=e.changedTouches[0];
+                    ctx.moveTo(pos.clientX, pos.clientY);
+                    cx=pos.clientX;
+                    cy=pos.clientY;
+                    isdrawing=true;
+                }
+            
+                canvas1.ontouchend=function(e){
+                    isdrawing=false;
+                    firstdrawing=false;
+                    cx1=-1;
+                    cy1=-1;
+                }
+
+
+                canvas1.ontouchmove=function(e){
+                if(isdrawing){
+                    var pos=e.changedTouches[0];
+                    if(firstdrawing||cx1<0||cy1<0){
+                        window.ontouchmove=function(e){
+                            e.preventDefault && e.preventDefault();
+                            e.returnValue=false;
+                            e.stopPropagation && e.stopPropagation();    
+                            return false;
+                        };
+                        cx1=pos.clientX;
+                        cy1=pos.clientY;
+                        firstdrawing=false;
+                    }                 
+                    //ctx.lineCap="round";
+                    //ctx.lineTo(e.clientX, e.clientY);
+                    //画线
+                    //ctx.moveTo(e.clientX, e.clientY);
+                    //ctx.stroke();//划线到当前的xy
+                    /*ctx.lineCap="round";
+                    ctx.quadraticCurveTo((cx+pos.clientX)/2,(cy+pos.clientY)/2,pos.clientX, pos.clientY)
+                    ctx.stroke();
+                    ctx.moveTo(pos.clientX, pos.clientY);
+                    cx=pos.clientX;
+                    cy=pos.clientY;*/
+                    cx2=pos.clientX;
+                    cy2=pos.clientY;
+                    ctx.moveTo((cx+cx1)/2, (cy+cy1)/2);
+                    ctx.quadraticCurveTo(cx1,cy1,(cx2+cx1)/2,(cy2+cy1)/2);
+                    ctx.stroke();
+                    cx=cx1;
+                    cy=cy1;
+                    cx1=cx2;
+                    cy1=cy2;
+                }
+                }
+
+            }
+            
+            var data_32;
+            var idata;
+           var btn1=document.getElementById("cut");
+           btn1.onclick=function(e){
+                //window.alert('?')
+                img=ctx.getImageData(0,0,600,600); 
+                imgdata=img.data;    
+                //window.alert(img.data.length);
+                var h=img.height;
+                var w=img.width;
+                var maxx=0;
+                var minx=w;
+                var maxy=0;
+                var miny=h;
+
+
+                //window.alert(h);
+                for(var i=0;i<600;i++){     //找有数字的区域
+                    for(var j=0;j<600;j++){
+                        if(imgdata[4*(j*w+i)]>0){
+                            if(i>maxx){
+                                maxx=i;
+                            }
+                            if(i<minx){
+                                minx=i;
+                            }
+                            if(j>maxy){
+                                maxy=j;
+                            }
+                            if(j<miny){
+                                miny=j;
+                            }
+
+                        }
+                    }
+                }
+                console.log(minx,miny);
+                console.log(maxx,maxy);
+                if(maxx-minx>maxy-miny){
+                    var dif=Math.ceil((maxx-minx)/2);
+                    var posx=15;
+                    var posy=((maxx-minx)-(maxy-miny))/2+15;
+                    //var mid=Math.ceil((maxy+miny)/2);
+                    //maxy=mid+dif;
+                    //miny=mid-dif;
+                }
+                else{
+                    var dif=Math.ceil((maxy-miny)/2);
+                    var posy=15;
+                    var posx=((maxy-miny)-(maxx-minx))/2+15;
+                    //var mid=Math.ceil((maxx+minx)/2);
+                    //maxx=mid+dif;
+                    //minx=mid-dif;
+                }
+                //console.log(minx,miny);
+                //console.log(maxx,maxy);
+
+                var numimg=ctx.getImageData(minx,miny,maxx,maxy);
+                var canvas3 = document.createElement("canvas")
+                var ctx3=canvas3.getContext("2d")
+
+                //canvas3.height=numimg.height;
+                //canvas3.width=numimg.width;
+                canvas3.height=2*dif+30;
+                canvas3.width=2*dif+30;
+                ctx3.fillStyle="black";
+                ctx3.fillRect(0,0,canvas3.width,canvas3.height);
+                ctx3.putImageData(numimg,posx,posy,0,0,maxx-minx,maxy-miny);
+                var img=canvas3.toDataURL("/image/png");
+                var img2=new Image();
+                img2.src=img;
+                img2.onload=function(){
+                    ctx2.drawImage(img2,0,0,28,28);
+                    data_32=canvas2.toDataURL(0,0,28,28);  //base64
+                    //var idata=ctx2.getImageData(0,0,28,28);
+                    //console.log(idata);
+                }
+                
+                //console.log(data_32);
+                //img2.src=img;
+                //img2.onload=function(){
+                    //ctx2.drawImage(img2,0,0,512,512);
+                //}
+            }
+           
+           var btn3=document.getElementById("clear");
+           btn3.onclick=function(e){
+                canvas1.height+=0;
+                canvas2.height+=0;
+                ctx=canvas1.getContext("2d");
+                ctx.fillRect(0,0,600,600);
+                ctx.lineWidth = 15;
+                //设置线的颜色
+                ctx.strokeStyle = "white";
+           }
+
+
+
+
+			var btn2=document.getElementById("upload");
+			btn2.onclick=function(e){
+               var message= data_32;
+               //socket.send(message)   //send base64
+               //var message=idata;     
+               var ctx2 = canvas2.getContext("2d");
+               var idata=ctx2.getImageData(0,0,28,28).data;
+               console.log(idata);
+               socket.send(idata);
+			}
+
+            var ad="ws://"+window.location.host+"/num";
+            var socket=new WebSocket(ad);
+            socket.onopen=function(evt){
+                console.log(ad);
+            }
+            socket.onmessage=function(evt){
+                console.log(evt.data)
+                document.getElementById("res").innerHTML="结果："+evt.data;
+            }
+
+
+        </script>
+    </body>
+
+</html>
